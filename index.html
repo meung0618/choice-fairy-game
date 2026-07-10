@@ -1,0 +1,374 @@
+<div id="game">
+  <h1>🧚 선택 요정이 되어 합리적 선택을 도와라!</h1>
+
+  <div class="character">
+    <div class="face">👓</div>
+    <div>
+      <h2>해련</h2>
+      <p id="message">안녕! 나의 선택 요정이 되어 합리적인 선택을 도와줘!</p>
+    </div>
+  </div>
+
+  <div id="content">
+    <h2>게임 안내</h2>
+    <p>
+      각 선택지의 편익, 명시적 비용, 암묵적 비용, 기회비용, 순편익을 확인하고
+      해련이에게 가장 합리적인 선택을 추천해 주세요.
+    </p>
+    <button onclick="startGame()">게임 시작하기 ▶</button>
+  </div>
+
+  <div class="score">POINT: <span id="score">0</span></div>
+</div>
+
+<style>
+  body {
+    margin: 0;
+    background: #f7f1d8;
+    font-family: "Courier New", sans-serif;
+    color: #222;
+  }
+
+  #game {
+    max-width: 850px;
+    margin: 30px auto;
+    padding: 20px;
+  }
+
+  h1 {
+    background: #fff;
+    border: 4px solid #222;
+    box-shadow: 6px 6px 0 #222;
+    padding: 20px;
+    font-size: 28px;
+  }
+
+  .character {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    background: #fff;
+    border: 4px solid #222;
+    box-shadow: 6px 6px 0 #222;
+    padding: 16px;
+    margin: 20px 0;
+  }
+
+  .face {
+    width: 90px;
+    height: 90px;
+    background: #ffe3e3;
+    border: 4px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+  }
+
+  #content {
+    background: #fffdf2;
+    border: 4px solid #222;
+    box-shadow: 6px 6px 0 #222;
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .score {
+    margin-top: 20px;
+    background: #dff8ff;
+    border: 4px solid #222;
+    box-shadow: 6px 6px 0 #222;
+    padding: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .choice-box {
+    border: 3px solid #222;
+    background: #fff;
+    padding: 15px;
+    margin: 14px 0;
+  }
+
+  .choice-box h3 {
+    margin-top: 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 15px;
+  }
+
+  th, td {
+    border: 2px solid #222;
+    padding: 8px;
+    text-align: center;
+  }
+
+  th {
+    background: #ffe28a;
+  }
+
+  button {
+    background: #b8f7c5;
+    border: 4px solid #222;
+    box-shadow: 4px 4px 0 #222;
+    padding: 12px 18px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    font-family: inherit;
+  }
+
+  button:active {
+    transform: translate(3px, 3px);
+    box-shadow: 1px 1px 0 #222;
+  }
+
+  .result-good {
+    background: #dcffd9;
+    border: 4px solid #222;
+    padding: 18px;
+  }
+
+  .result-bad {
+    background: #ffe0e0;
+    border: 4px solid #222;
+    padding: 18px;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #ffe28a;
+    border: 4px solid #222;
+    padding: 12px 18px;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 15px 0;
+  }
+</style>
+
+<script>
+  let score = 0;
+  let stage = 0;
+
+  const stages = [
+    {
+      title: "선택 1. 아침식사 선택",
+      message: "아침을 못 먹고 왔더니 너무 배고파. 어떤 선택이 가장 합리적일까?",
+      story: "해련이는 아침을 먹지 못한 채 등교했습니다. 편의점에서 간단한 아침식사를 하려고 합니다. 현재 사용할 수 있는 예산은 3,000원이며, 배가 고프면 1교시 수업 집중이 어려울 수 있습니다.",
+      best: "소불고기 삼각김밥",
+      options: [
+        {
+          name: "소불고기 삼각김밥",
+          benefit: 4500,
+          explicit: 2500,
+          implicit: 1500,
+          opportunity: 4000,
+          net: 500,
+          rational: true,
+          feedback: "순편익이 가장 크므로 이 상황에서 가장 합리적인 선택입니다."
+        },
+        {
+          name: "맥반석 계란",
+          benefit: 3000,
+          explicit: 1500,
+          implicit: 2000,
+          opportunity: 3500,
+          net: -500,
+          rational: false,
+          feedback: "돈은 덜 들지만 순편익이 음수입니다. 가장 합리적인 선택은 아닙니다."
+        },
+        {
+          name: "굶기",
+          benefit: 500,
+          explicit: 0,
+          implicit: 2000,
+          opportunity: 2000,
+          net: -1500,
+          rational: false,
+          feedback: "명시적 비용은 없지만 집중력 저하라는 포기 비용이 큽니다."
+        }
+      ]
+    },
+    {
+      title: "선택 2. 영화관 매몰비용 상황",
+      message: "이미 영화표 값을 냈는데, 그래도 끝까지 봐야 할까?",
+      story: "해련이는 친구와 영화를 보러 갔습니다. 이미 영화표 8,000원을 냈고 환불은 불가능합니다. 그런데 영화가 너무 재미없고 수행평가 준비도 해야 합니다. 영화표 값은 이미 회수할 수 없는 매몰비용이므로 현재 선택 판단에서 제외해야 합니다.",
+      best: "영화관에서 나오기",
+      options: [
+        {
+          name: "끝까지 보기",
+          benefit: 5000,
+          explicit: 0,
+          implicit: 8000,
+          opportunity: 8000,
+          net: -3000,
+          rational: false,
+          feedback: "이미 낸 영화표 값에 얽매인 선택입니다. 매몰비용은 현재 선택 판단에서 제외해야 합니다."
+        },
+        {
+          name: "영화관에서 나오기",
+          benefit: 8000,
+          explicit: 0,
+          implicit: 5000,
+          opportunity: 5000,
+          net: 3000,
+          rational: true,
+          feedback: "매몰비용에 얽매이지 않고 앞으로의 편익과 기회비용을 비교한 합리적 선택입니다."
+        }
+      ]
+    }
+  ];
+
+  function money(num) {
+    return num.toLocaleString("ko-KR") + "원";
+  }
+
+  function updateScore() {
+    document.getElementById("score").innerText = score;
+  }
+
+  function startGame() {
+    score = 0;
+    stage = 0;
+    updateScore();
+    showStage();
+  }
+
+  function showStage() {
+    const data = stages[stage];
+    document.getElementById("message").innerText = data.message;
+
+    let html = `
+      <h2>${data.title}</h2>
+      <p>${data.story}</p>
+    `;
+
+    data.options.forEach((option, index) => {
+      html += `
+        <div class="choice-box">
+          <h3>${option.name}</h3>
+          <table>
+            <tr>
+              <th>편익</th>
+              <th>명시적 비용</th>
+              <th>암묵적 비용</th>
+              <th>기회비용</th>
+              <th>순편익</th>
+            </tr>
+            <tr>
+              <td>${money(option.benefit)}</td>
+              <td>${money(option.explicit)}</td>
+              <td>${money(option.implicit)}</td>
+              <td>${money(option.opportunity)}</td>
+              <td>${money(option.net)}</td>
+            </tr>
+          </table>
+          <button onclick="choose(${index})">${option.name} 선택하기</button>
+        </div>
+      `;
+    });
+
+    document.getElementById("content").innerHTML = html;
+  }
+
+  function choose(index) {
+    const data = stages[stage];
+    const option = data.options[index];
+
+    if (option.rational) {
+      score += 10;
+    }
+
+    updateScore();
+
+    document.getElementById("message").innerText = option.rational
+      ? "고마워! 덕분에 합리적인 선택을 할 수 있었어."
+      : "음… 다시 생각해 보니 다른 선택이 더 합리적일 수도 있겠어.";
+
+    const resultClass = option.rational ? "result-good" : "result-bad";
+    const pointText = option.rational ? "+10 POINT 획득!" : "포인트를 얻지 못했습니다.";
+
+    let nextButton = "";
+
+    if (stage < stages.length - 1) {
+      nextButton = `<button onclick="nextStage()">다음 선택으로 이동 ▶</button>`;
+    } else {
+      nextButton = `<button onclick="showFinal()">최종 결과 보기 ▶</button>`;
+    }
+
+    document.getElementById("content").innerHTML = `
+      <div class="${resultClass}">
+        <h2>선택 결과: ${option.name}</h2>
+        <h3>${pointText}</h3>
+        <p>${option.feedback}</p>
+        <p>이 상황에서 순편익이 가장 큰 선택은 <strong>${data.best}</strong>입니다.</p>
+
+        <table>
+          <tr>
+            <th>편익</th>
+            <th>명시적 비용</th>
+            <th>암묵적 비용</th>
+            <th>기회비용</th>
+            <th>순편익</th>
+          </tr>
+          <tr>
+            <td>${money(option.benefit)}</td>
+            <td>${money(option.explicit)}</td>
+            <td>${money(option.implicit)}</td>
+            <td>${money(option.opportunity)}</td>
+            <td>${money(option.net)}</td>
+          </tr>
+        </table>
+
+        ${nextButton}
+      </div>
+    `;
+  }
+
+  function nextStage() {
+    stage++;
+    showStage();
+  }
+
+  function showFinal() {
+    let badge = "";
+    let message = "";
+
+    if (score === 20) {
+      badge = "🏆 합리적 선택 요정";
+      message = "두 상황 모두에서 편익과 기회비용을 잘 비교했습니다!";
+    } else if (score === 10) {
+      badge = "🌱 성장 중인 선택 요정";
+      message = "한 상황에서는 합리적인 선택을 했습니다. 나머지 상황도 다시 생각해 봅시다.";
+    } else {
+      badge = "🔍 기회비용 다시 보기";
+      message = "무엇을 얻고 무엇을 포기하는지 다시 비교해 봅시다.";
+    }
+
+    document.getElementById("message").innerText =
+      "오늘의 선택을 돌아보며, 앞으로 내 선택도 더 주체적으로 판단해 보자!";
+
+    document.getElementById("content").innerHTML = `
+      <h2>최종 결과</h2>
+      <p>총점: <strong>${score} POINT</strong></p>
+      <div class="badge">${badge}</div>
+      <p>${message}</p>
+
+      <p>
+        합리적 선택은 여러 대안의 편익과 기회비용을 비교하여
+        순편익이 가장 큰 대안을 선택하는 과정입니다.
+      </p>
+      <p>
+        이미 지출해 다시 회수할 수 없는 매몰비용에 얽매이지 않는 태도도 중요합니다.
+      </p>
+
+      <button onclick="startGame()">처음부터 다시 하기 ↺</button>
+    `;
+  }
+</script>
