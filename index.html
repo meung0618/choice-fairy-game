@@ -128,6 +128,15 @@
       margin-top: 4px;
     }
 
+    .sound-btn {
+      margin-top: 10px;
+      width: 100%;
+      box-shadow: none;
+      font-size: 13px;
+      padding: 8px;
+      background: white;
+    }
+
     .card {
       border: 3px solid var(--line);
       background: var(--card);
@@ -442,14 +451,24 @@
     <div class="layout">
       <aside class="side">
         <div class="character-frame">
-          <img src="images/haeryeon.png" alt="해련이 캐릭터" onerror="this.style.display='none'; document.querySelector('.fallback-character').style.display='block';">
+          <img
+            src="IMG_1390.jpeg"
+            alt="해련이 캐릭터"
+            onerror="this.style.display='none'; document.querySelector('.fallback-character').style.display='block';"
+          />
           <div class="fallback-character">👓</div>
         </div>
+
         <div class="name-tag">해련</div>
+
         <div class="score-mini">
           POINT
           <strong id="scoreNow">0</strong>
         </div>
+
+        <button class="sound-btn" onclick="toggleSound()" id="soundToggle">
+          🔊 효과음 켜짐
+        </button>
       </aside>
 
       <main id="screen" class="card"></main>
@@ -465,6 +484,9 @@
     let missionCalcDone = [false, false];
     let missionChoiceDone = [false, false];
     let reviewAnswered = [false, false, false];
+
+    let soundOn = true;
+    let audioCtx = null;
 
     const missions = [
       {
@@ -590,12 +612,74 @@
     const screen = document.getElementById("screen");
     const scoreNow = document.getElementById("scoreNow");
 
+    function toggleSound() {
+      soundOn = !soundOn;
+      const btn = document.getElementById("soundToggle");
+      if (btn) {
+        btn.textContent = soundOn ? "🔊 효과음 켜짐" : "🔇 효과음 꺼짐";
+      }
+    }
+
+    function playTone(type) {
+      if (!soundOn) return;
+
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+      }
+
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      if (type === "click") {
+        oscillator.frequency.value = 520;
+        gainNode.gain.value = 0.035;
+      }
+
+      if (type === "correct") {
+        oscillator.frequency.value = 760;
+        gainNode.gain.value = 0.05;
+      }
+
+      if (type === "wrong") {
+        oscillator.frequency.value = 180;
+        gainNode.gain.value = 0.045;
+      }
+
+      if (type === "badge") {
+        oscillator.frequency.value = 880;
+        gainNode.gain.value = 0.055;
+      }
+
+      oscillator.type = "square";
+      oscillator.start();
+
+      setTimeout(() => {
+        oscillator.stop();
+      }, type === "badge" ? 220 : 120);
+    }
+
     function money(num) {
       return Number(num).toLocaleString("ko-KR") + "원";
     }
 
     function parseMoney(value) {
-      return Number(String(value).replaceAll(",", "").replaceAll("원", "").replace("+", "").trim());
+      return Number(
+        String(value)
+          .replaceAll(",", "")
+          .replaceAll("원", "")
+          .replace("+", "")
+          .trim()
+      );
     }
 
     function updateScore() {
@@ -606,7 +690,12 @@
       const steps = ["시작", "스토리", "튜토리얼", "선택 활동", "정리"];
       return `
         <div class="progress">
-          ${steps.map((step, index) => `<div class="${index === active ? "on" : ""}">${step}</div>`).join("")}
+          ${steps
+            .map(
+              (step, index) =>
+                `<div class="${index === active ? "on" : ""}">${step}</div>`
+            )
+            .join("")}
         </div>
       `;
     }
@@ -647,6 +736,8 @@
         return;
       }
 
+      playTone("click");
+
       nickname = input;
       score = 0;
       currentMission = 0;
@@ -658,6 +749,8 @@
     }
 
     function storyOne() {
+      playTone("click");
+
       screen.innerHTML = `
         ${progressHTML(1)}
         <h2>해련이의 고민</h2>
@@ -674,6 +767,8 @@
     }
 
     function storyTwo() {
+      playTone("click");
+
       screen.innerHTML = `
         ${progressHTML(1)}
         <h2>선택 요정 미션</h2>
@@ -720,6 +815,8 @@
     }
 
     function tutorialOne() {
+      playTone("click");
+
       screen.innerHTML = `
         ${progressHTML(2)}
         <h2>튜토리얼 1 | 선택지 자체의 가치 구하기</h2>
@@ -758,6 +855,8 @@
     }
 
     function tutorialTwo() {
+      playTone("click");
+
       screen.innerHTML = `
         ${progressHTML(2)}
         <h2>튜토리얼 2 | 암묵적 비용 찾기</h2>
@@ -790,6 +889,8 @@
     }
 
     function tutorialThree() {
+      playTone("click");
+
       screen.innerHTML = `
         ${progressHTML(2)}
         <h2>튜토리얼 3 | 기회비용과 순편익 계산하기</h2>
@@ -836,6 +937,8 @@
     }
 
     function showMission() {
+      playTone("click");
+
       const data = missions[currentMission];
 
       let rows = "";
@@ -908,6 +1011,8 @@
     }
 
     function fillExampleHint() {
+      playTone("click");
+
       document.getElementById("calcFeedback").innerHTML = `
         <div class="feedback">
           먼저 선택지 자체의 가치를 비교해 보세요. 그리고 내가 어떤 선택을 했을 때 포기하게 되는 대안 중 가장 가치 있는 것을 암묵적 비용으로 보면 됩니다.
@@ -949,6 +1054,8 @@
         updateScore();
       }
 
+      playTone(allCorrect ? "correct" : "wrong");
+
       document.getElementById("calcFeedback").innerHTML = `
         <div class="feedback ${allCorrect ? "good" : "bad"}">
           <strong>${allCorrect ? "계산이 정확합니다. +5 POINT" : "아직 다른 값이 있습니다. 표를 보고 다시 비교해 보세요."}</strong>
@@ -971,6 +1078,8 @@
       const option = data.options[index];
 
       if (!missionCalcDone[currentMission]) {
+        playTone("wrong");
+
         document.getElementById("choiceFeedback").innerHTML = `
           <div class="feedback bad">
             먼저 계산을 정확히 확인한 뒤 해련이에게 선택을 제안해 주세요.
@@ -995,9 +1104,12 @@
         missionChoiceDone[currentMission] = true;
       }
 
-      const nextButton = currentMission < missions.length - 1
-        ? `<button onclick="nextMission()">다음 선택 상황으로 이동</button>`
-        : `<button onclick="showReviewQuestion(0)">정리 질문으로 이동</button>`;
+      playTone(option.rational ? "correct" : "wrong");
+
+      const nextButton =
+        currentMission < missions.length - 1
+          ? `<button onclick="nextMission()">다음 선택 상황으로 이동</button>`
+          : `<button onclick="showReviewQuestion(0)">정리 질문으로 이동</button>`;
 
       document.getElementById("choiceFeedback").innerHTML = `
         <div class="feedback ${option.rational ? "good" : "bad"}">
@@ -1015,6 +1127,8 @@
     }
 
     function showReviewQuestion(qIndex) {
+      playTone("click");
+
       const q = reviewQuestions[qIndex];
 
       let buttons = "";
@@ -1061,6 +1175,8 @@
         reviewAnswered[qIndex] = true;
       }
 
+      playTone(choice.correct ? "correct" : "wrong");
+
       const next =
         qIndex < reviewQuestions.length - 1
           ? `<button onclick="showReviewQuestion(${qIndex + 1})">다음 질문</button>`
@@ -1099,8 +1215,9 @@
     }
 
     function showFinal() {
-      const badge = getBadge(score);
+      playTone("click");
 
+      const badge = getBadge(score);
       saveRanking();
 
       screen.innerHTML = `
@@ -1147,6 +1264,7 @@
       const finalButtons = document.getElementById("finalButtons");
 
       let current = 0;
+
       const interval = setInterval(() => {
         if (current >= finalScore) {
           clearInterval(interval);
@@ -1155,6 +1273,7 @@
             badgeBox.style.display = "block";
             finalMessage.style.display = "block";
             finalButtons.style.display = "flex";
+            playTone("badge");
           }, 450);
 
           return;
@@ -1172,6 +1291,7 @@
 
     function saveRanking() {
       const badge = getBadge(score);
+
       const record = {
         nickname,
         score,
@@ -1186,16 +1306,22 @@
     }
 
     function showRanking() {
+      playTone("click");
+
       const list = JSON.parse(localStorage.getItem("choiceFairyRanking") || "[]");
 
-      const rows = list.map((item, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${item.nickname}</td>
-          <td>${item.score}점</td>
-          <td>${item.badge}</td>
-        </tr>
-      `).join("");
+      const rows = list
+        .map(
+          (item, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${item.nickname}</td>
+              <td>${item.score}점</td>
+              <td>${item.badge}</td>
+            </tr>
+          `
+        )
+        .join("");
 
       screen.innerHTML = `
         ${progressHTML(4)}
