@@ -481,10 +481,11 @@
     let nickname = "";
     let score = 0;
     let currentMission = 0;
-    let missionCalcDone = [false, false];
-    let missionCalcChecked = [false, false];
-    let missionChoiceDone = [false, false];
-    let reviewAnswered = [false, false, false];
+
+    let missionCalcDone = [false, false];       // 계산 점수를 받았는지
+    let missionCalcChecked = [false, false];    // 계산 확인을 한 번이라도 했는지
+    let missionChoiceDone = [false, false];     // 선택 점수 기회를 사용했는지
+    let reviewAnswered = [false, false, false]; // 정리 질문 점수 기회를 사용했는지
 
     let soundOn = true;
     let audioCtx = null;
@@ -746,13 +747,12 @@
       missionCalcChecked = [false, false];
       missionChoiceDone = [false, false];
       reviewAnswered = [false, false, false];
+
       updateScore();
       storyOne();
     }
 
     function storyOne() {
-      playTone("click");
-
       screen.innerHTML = `
         ${progressHTML(1)}
         <h2>해련이의 고민</h2>
@@ -1004,6 +1004,9 @@
         <div id="calcFeedback"></div>
 
         <h3>2단계 | 해련이에게 제안할 선택</h3>
+        <p class="small">
+          계산 확인을 한 번이라도 누르면 선택 단계로 넘어갈 수 있습니다. 계산 점수는 첫 번째 확인 결과만 반영됩니다.
+        </p>
         <div class="choice-list">
           ${choiceButtons}
         </div>
@@ -1023,94 +1026,75 @@
     }
 
     function checkMissionCalculation() {
-  const data = missions[currentMission];
-  let allCorrect = true;
-  let answerRows = "";
+      const data = missions[currentMission];
+      let allCorrect = true;
+      let answerRows = "";
 
-  const firstCheck = !missionCalcChecked[currentMission];
+      const firstCheck = !missionCalcChecked[currentMission];
 
-  data.options.forEach((option, index) => {
-    const implicitInput = parseMoney(document.getElementById(`implicit-${index}`).value);
-    const opportunityInput = parseMoney(document.getElementById(`opportunity-${index}`).value);
-    const netInput = parseMoney(document.getElementById(`net-${index}`).value);
+      data.options.forEach((option, index) => {
+        const implicitInput = parseMoney(document.getElementById(`implicit-${index}`).value);
+        const opportunityInput = parseMoney(document.getElementById(`opportunity-${index}`).value);
+        const netInput = parseMoney(document.getElementById(`net-${index}`).value);
 
-    const correct =
-      implicitInput === option.implicit &&
-      opportunityInput === option.opportunity &&
-      netInput === option.net;
+        const correct =
+          implicitInput === option.implicit &&
+          opportunityInput === option.opportunity &&
+          netInput === option.net;
 
-    if (!correct) allCorrect = false;
+        if (!correct) {
+          allCorrect = false;
+        }
 
-    answerRows += `
-      <tr>
-        <td>${option.name}</td>
-        <td>${money(option.implicit)}</td>
-        <td>${money(option.opportunity)}</td>
-        <td>${money(option.net)}</td>
-        <td>${correct ? "정답" : "오답"}</td>
-      </tr>
-    `;
-  });
+        answerRows += `
+          <tr>
+            <td>${option.name}</td>
+            <td>${money(option.implicit)}</td>
+            <td>${money(option.opportunity)}</td>
+            <td>${money(option.net)}</td>
+            <td>${correct ? "정답" : "오답"}</td>
+          </tr>
+        `;
+      });
 
-  // 계산 확인은 한 번이라도 누르면 완료 처리
-  missionCalcChecked[currentMission] = true;
+      missionCalcChecked[currentMission] = true;
 
-  // 첫 번째 확인에서 모두 맞힌 경우에만 계산 포인트 지급
-  if (firstCheck && allCorrect && !missionCalcDone[currentMission]) {
-    score += 5;
-    missionCalcDone[currentMission] = true;
-    updateScore();
-  }
+      if (firstCheck && allCorrect && !missionCalcDone[currentMission]) {
+        score += 5;
+        missionCalcDone[currentMission] = true;
+        updateScore();
+      }
 
-  playTone(allCorrect ? "correct" : "wrong");
-
-  let feedbackTitle = "";
-
-  if (firstCheck && allCorrect) {
-    feedbackTitle = "계산이 정확합니다. +5 POINT";
-  } else if (firstCheck && !allCorrect) {
-    feedbackTitle = "오답입니다. 정답을 확인한 뒤 다음 단계로 넘어갈 수 있습니다. 계산 포인트는 획득하지 못했습니다.";
-  } else if (!firstCheck && allCorrect) {
-    feedbackTitle = "계산은 맞지만, 이미 확인한 미션이므로 추가 포인트는 없습니다.";
-  } else {
-    feedbackTitle = "정답표를 참고해 복습해 보세요. 추가 포인트는 없습니다.";
-  }
-
-  document.getElementById("calcFeedback").innerHTML = `
-    <div class="feedback ${allCorrect ? "good" : "bad"}">
-      <strong>${feedbackTitle}</strong>
-      <table>
-        <tr>
-          <th>선택지</th>
-          <th>암묵적 비용 정답</th>
-          <th>기회비용 정답</th>
-          <th>순편익 정답</th>
-          <th>나의 계산</th>
-        </tr>
-        ${answerRows}
-      </table>
-      <p>
-        이제 정답표를 참고하여 해련이에게 제안할 선택지를 골라 보세요.
-        단, 계산 점수는 첫 번째 확인 결과만 반영됩니다.
-      </p>
-    </div>
-  `;
-}
       playTone(allCorrect ? "correct" : "wrong");
+
+      let feedbackTitle = "";
+
+      if (firstCheck && allCorrect) {
+        feedbackTitle = "계산이 정확합니다. +5 POINT";
+      } else if (firstCheck && !allCorrect) {
+        feedbackTitle = "오답입니다. 정답을 확인한 뒤 선택 단계로 넘어갈 수 있습니다. 계산 포인트는 획득하지 못했습니다.";
+      } else if (!firstCheck && allCorrect) {
+        feedbackTitle = "계산은 맞지만, 이미 확인한 미션이므로 추가 포인트는 없습니다.";
+      } else {
+        feedbackTitle = "정답표를 참고해 복습해 보세요. 추가 포인트는 없습니다.";
+      }
 
       document.getElementById("calcFeedback").innerHTML = `
         <div class="feedback ${allCorrect ? "good" : "bad"}">
-          <strong>${allCorrect ? "계산이 정확합니다. +5 POINT" : "아직 다른 값이 있습니다. 표를 보고 다시 비교해 보세요."}</strong>
+          <strong>${feedbackTitle}</strong>
           <table>
             <tr>
               <th>선택지</th>
-              <th>암묵적 비용</th>
-              <th>기회비용</th>
-              <th>순편익</th>
-              <th>확인</th>
+              <th>암묵적 비용 정답</th>
+              <th>기회비용 정답</th>
+              <th>순편익 정답</th>
+              <th>나의 계산</th>
             </tr>
             ${answerRows}
           </table>
+          <p>
+            계산 점수는 첫 번째 확인 결과만 반영됩니다. 이제 정답표를 참고하여 해련이에게 제안할 선택지를 골라 보세요.
+          </p>
         </div>
       `;
     }
@@ -1120,15 +1104,15 @@
       const option = data.options[index];
 
       if (!missionCalcChecked[currentMission]) {
-  playTone("wrong");
+        playTone("wrong");
 
-  document.getElementById("choiceFeedback").innerHTML = `
-    <div class="feedback bad">
-      먼저 계산 확인하기를 눌러 자신의 계산을 점검한 뒤, 해련이에게 선택을 제안해 주세요.
-    </div>
-  `;
-  return;
-}
+        document.getElementById("choiceFeedback").innerHTML = `
+          <div class="feedback bad">
+            먼저 계산 확인하기를 눌러 자신의 계산을 점검한 뒤, 해련이에게 선택을 제안해 주세요.
+          </div>
+        `;
+        return;
+      }
 
       data.options.forEach((_, i) => {
         const btn = document.getElementById(`choice-${i}`);
