@@ -16,6 +16,7 @@
       --good: #dcefd8;
       --bad: #f1d6d6;
       --bar: #3f3a34;
+      --accent: #e7d7bf;
     }
 
     * {
@@ -24,13 +25,17 @@
 
     body {
       margin: 0;
-      background: var(--bg);
+      background:
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        var(--bg);
+      background-size: 28px 28px;
       color: var(--text);
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
     }
 
     .app {
-      max-width: 980px;
+      max-width: 1020px;
       margin: 0 auto;
       padding: 28px 18px 44px;
     }
@@ -41,6 +46,7 @@
       padding: 20px;
       margin-bottom: 18px;
       box-shadow: 5px 5px 0 var(--line);
+      animation: dropIn 0.45s ease-out;
     }
 
     .project-label {
@@ -49,14 +55,14 @@
       background: var(--soft);
       padding: 6px 10px;
       font-size: 14px;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 12px;
     }
 
     h1 {
       margin: 0;
       font-size: 30px;
-      line-height: 1.3;
+      line-height: 1.35;
     }
 
     .sub {
@@ -67,7 +73,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 210px 1fr;
+      grid-template-columns: 220px 1fr;
       gap: 18px;
       align-items: start;
     }
@@ -79,6 +85,7 @@
       box-shadow: 5px 5px 0 var(--line);
       position: sticky;
       top: 18px;
+      animation: sideIn 0.45s ease-out;
     }
 
     .character-frame {
@@ -97,6 +104,11 @@
       height: 100%;
       object-fit: contain;
       display: block;
+      transition: transform 0.35s ease, opacity 0.35s ease;
+    }
+
+    .character-frame.expression-change img {
+      animation: characterPop 0.5s ease-out;
     }
 
     .fallback-character {
@@ -137,6 +149,11 @@
       display: block;
       font-size: 28px;
       margin-top: 4px;
+      transition: transform 0.25s ease;
+    }
+
+    .score-pop {
+      animation: scorePop 0.32s ease-out;
     }
 
     .sound-btn {
@@ -154,6 +171,16 @@
       padding: 20px;
       box-shadow: 5px 5px 0 var(--line);
       min-height: 560px;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .screen-enter {
+      animation: fadeSlideIn 0.38s ease-out;
+    }
+
+    .screen-leave {
+      opacity: 0;
+      transform: translateY(12px);
     }
 
     h2 {
@@ -176,6 +203,7 @@
       padding: 16px;
       margin: 14px 0;
       line-height: 1.75;
+      animation: bubbleIn 0.45s ease-out;
     }
 
     .story-box,
@@ -221,11 +249,22 @@
       font-weight: 800;
       font-size: 15px;
       box-shadow: 3px 3px 0 var(--line);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     }
 
     button:hover {
       transform: translate(1px, 1px);
       box-shadow: 2px 2px 0 var(--line);
+    }
+
+    button:active {
+      transform: translate(3px, 3px);
+      box-shadow: 0 0 0 var(--line);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.82;
     }
 
     .button-row {
@@ -306,6 +345,7 @@
       margin: 14px 0;
       line-height: 1.7;
       background: white;
+      animation: feedbackIn 0.28s ease-out;
     }
 
     .feedback.good {
@@ -330,16 +370,19 @@
       box-shadow: none;
       border: 2px solid var(--line);
       line-height: 1.7;
+      animation: optionIn 0.28s ease-out;
     }
 
     .choice-btn.selected-good {
       background: var(--good);
       border-width: 3px;
+      animation: correctPulse 0.45s ease-out;
     }
 
     .choice-btn.selected-bad {
       background: var(--bad);
       border-width: 3px;
+      animation: wrongShake 0.38s ease-out;
     }
 
     .progress {
@@ -356,10 +399,12 @@
       text-align: center;
       font-size: 12px;
       font-weight: 800;
+      transition: background 0.25s ease, transform 0.25s ease;
     }
 
     .progress .on {
       background: var(--soft);
+      transform: translateY(-2px);
     }
 
     .challenge-label {
@@ -370,6 +415,7 @@
       font-size: 14px;
       font-weight: 900;
       margin-bottom: 12px;
+      animation: labelPop 0.32s ease-out;
     }
 
     .card-question {
@@ -381,6 +427,8 @@
       font-size: 22px;
       font-weight: 900;
       line-height: 1.6;
+      animation: cardFlipIn 0.45s ease-out;
+      transform-origin: center;
     }
 
     .mini-status {
@@ -425,18 +473,12 @@
       margin: 18px 0;
       font-size: 24px;
       font-weight: 900;
-      animation: pop 0.45s ease-out;
+      animation: badgePop 0.55s ease-out;
     }
 
-    @keyframes pop {
-      0% {
-        transform: scale(0.85);
-        opacity: 0;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
+    .sparkles {
+      display: inline-block;
+      animation: sparkleFloat 1.2s ease-in-out infinite alternate;
     }
 
     .ranking-table {
@@ -446,6 +488,172 @@
     .small {
       font-size: 14px;
       color: #555;
+    }
+
+    @keyframes dropIn {
+      from {
+        opacity: 0;
+        transform: translateY(-16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes sideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bubbleIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes feedbackIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes optionIn {
+      from {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes cardFlipIn {
+      0% {
+        opacity: 0;
+        transform: rotateX(70deg) scale(0.94);
+      }
+      100% {
+        opacity: 1;
+        transform: rotateX(0) scale(1);
+      }
+    }
+
+    @keyframes correctPulse {
+      0% {
+        transform: scale(1);
+      }
+      45% {
+        transform: scale(1.025);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes wrongShake {
+      0%, 100% {
+        transform: translateX(0);
+      }
+      25% {
+        transform: translateX(-4px);
+      }
+      50% {
+        transform: translateX(4px);
+      }
+      75% {
+        transform: translateX(-2px);
+      }
+    }
+
+    @keyframes labelPop {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes scorePop {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.22);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes characterPop {
+      0% {
+        opacity: 0.4;
+        transform: scale(0.88);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes badgePop {
+      0% {
+        transform: scale(0.72) rotate(-2deg);
+        opacity: 0;
+      }
+      65% {
+        transform: scale(1.08) rotate(1deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes sparkleFloat {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(-4px);
+      }
     }
 
     @media (max-width: 760px) {
@@ -483,6 +691,8 @@
 </head>
 
 <body>
+  <audio id="cardBgm" src="card-bgm.mp3" loop preload="auto"></audio>
+
   <div class="app">
     <section class="top">
       <div class="project-label">창의문제해결 프로젝트</div>
@@ -494,9 +704,10 @@
 
     <div class="layout">
       <aside class="side">
-        <div class="character-frame">
+        <div class="character-frame" id="characterFrame">
           <img
-            src="IMG_1390.jpeg"
+            id="haeryeonImage"
+            src="IMG_1392.png"
             alt="해련이 캐릭터"
             onerror="this.style.display='none'; document.querySelector('.fallback-character').style.display='block';"
           />
@@ -518,6 +729,10 @@
         <button class="sound-btn" onclick="toggleSound()" id="soundToggle">
           🔊 효과음 켜짐
         </button>
+
+        <button class="sound-btn" onclick="toggleBgm()" id="bgmToggle">
+          🎵 배경음악 켜짐
+        </button>
       </aside>
 
       <main id="screen" class="card"></main>
@@ -527,11 +742,18 @@
   <script>
     const MAX_SCORE = 50;
 
+    const HAERYEON_IMAGES = {
+      sad: "IMG_1392.png",
+      neutral: "IMG_1393.png",
+      happy: "IMG_1394.png"
+    };
+
     let nickname = "";
     let fairyName = "";
     let score = 0;
 
     let conceptIndex = 0;
+    let conceptRound = [];
     let conceptAnswered = [];
     let currentMission = 0;
 
@@ -543,38 +765,9 @@
     let reviewAnswered = [false, false, false];
 
     let soundOn = true;
+    let bgmOn = true;
     let audioCtx = null;
-
-    const conceptCards = [
-      {
-        term: "합리적 선택",
-        clue: "여러 대안의 편익과 비용을 비교해 순편익이 가장 큰 대안을 고르는 것"
-      },
-      {
-        term: "편익",
-        clue: "어떤 선택을 통해 얻게 되는 만족이나 이익"
-      },
-      {
-        term: "명시적 비용",
-        clue: "선택을 위해 실제로 지불하는 비용"
-      },
-      {
-        term: "암묵적 비용",
-        clue: "선택하지 않은 대안 중 가장 가치 있는 대안의 가치"
-      },
-      {
-        term: "기회비용",
-        clue: "명시적 비용과 암묵적 비용을 더한 값"
-      },
-      {
-        term: "매몰 비용",
-        clue: "이미 지출하여 다시 회수할 수 없는 비용"
-      },
-      {
-        term: "순편익",
-        clue: "편익에서 기회비용을 뺀 값"
-      }
-    ];
+    let currentPhase = "start";
 
     const conceptTerms = [
       "합리적 선택",
@@ -584,6 +777,36 @@
       "기회비용",
       "매몰 비용",
       "순편익"
+    ];
+
+    const allConceptCards = [
+      { clue: "친구 생일선물을 사기 위해 실제로 지불한 12,000원", term: "명시적 비용" },
+      { clue: "카페에서 음료를 사느라 실제로 낸 5,500원", term: "명시적 비용" },
+      { clue: "학원 교재를 구입하기 위해 카드로 결제한 18,000원", term: "명시적 비용" },
+
+      { clue: "학원에 가느라 포기한 친구들과의 축구 시간의 가치", term: "암묵적 비용" },
+      { clue: "영화를 보러 가며 포기한 도서관 자습 시간의 가치", term: "암묵적 비용" },
+      { clue: "떡볶이를 사 먹으면서 포기한 다른 간식 선택의 가치", term: "암묵적 비용" },
+
+      { clue: "새 우산을 사서 비를 맞지 않게 된 만족감", term: "편익" },
+      { clue: "삼각김밥을 먹고 배가 불러져 수업 집중이 쉬워진 것", term: "편익" },
+      { clue: "문제집을 구입해 시험 준비에 도움이 되는 것", term: "편익" },
+
+      { clue: "명시적 비용과 암묵적 비용을 더한 값", term: "기회비용" },
+      { clue: "어떤 선택을 하며 실제로 쓴 돈과 포기한 최선의 대안 가치를 합친 것", term: "기회비용" },
+      { clue: "치킨을 시켜 먹으면서 사용한 돈과 놓친 저축 기회를 모두 고려한 비용", term: "기회비용" },
+
+      { clue: "이미 결제했고 환불도 불가능한 콘서트 티켓 값", term: "매몰 비용" },
+      { clue: "이미 낸 영화표 값처럼 지금 돌려받을 수 없는 돈", term: "매몰 비용" },
+      { clue: "수강을 취소해도 반환되지 않는 등록비", term: "매몰 비용" },
+
+      { clue: "편익에서 기회비용을 뺀 최종적인 이익", term: "순편익" },
+      { clue: "어떤 선택으로 얻는 만족에서 모든 기회비용을 제외한 결과", term: "순편익" },
+      { clue: "시험 공부를 택했을 때 얻는 효과에서 포기한 여가 가치까지 뺀 값", term: "순편익" },
+
+      { clue: "여러 선택지 중 순편익이 가장 큰 대안을 고르는 것", term: "합리적 선택" },
+      { clue: "비용과 편익을 비교해 가장 적절한 대안을 선택하는 것", term: "합리적 선택" },
+      { clue: "포인트가 아니라 실제 순편익을 따져 최선의 선택을 하는 태도", term: "합리적 선택" }
     ];
 
     const missions = [
@@ -710,17 +933,67 @@
     const screen = document.getElementById("screen");
     const scoreNow = document.getElementById("scoreNow");
     const fairyNow = document.getElementById("fairyNow");
+    const cardBgm = document.getElementById("cardBgm");
+
+    function renderScreen(html) {
+      screen.classList.add("screen-leave");
+
+      setTimeout(() => {
+        screen.innerHTML = html;
+        screen.classList.remove("screen-leave");
+        screen.classList.add("screen-enter");
+
+        setTimeout(() => {
+          screen.classList.remove("screen-enter");
+        }, 420);
+      }, 120);
+    }
 
     function makeFairyName(name) {
       return name.endsWith("요정") ? name : name + " 요정";
     }
 
+    function shuffleArray(array) {
+      const copied = [...array];
+
+      for (let i = copied.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copied[i], copied[j]] = [copied[j], copied[i]];
+      }
+
+      return copied;
+    }
+
     function toggleSound() {
       soundOn = !soundOn;
-      const btn = document.getElementById("soundToggle");
-      if (btn) {
-        btn.textContent = soundOn ? "🔊 효과음 켜짐" : "🔇 효과음 꺼짐";
+      document.getElementById("soundToggle").textContent = soundOn
+        ? "🔊 효과음 켜짐"
+        : "🔇 효과음 꺼짐";
+    }
+
+    function toggleBgm() {
+      bgmOn = !bgmOn;
+      document.getElementById("bgmToggle").textContent = bgmOn
+        ? "🎵 배경음악 켜짐"
+        : "🎵 배경음악 꺼짐";
+
+      if (!bgmOn) {
+        stopCardBgm();
+      } else if (currentPhase === "concept") {
+        startCardBgm();
       }
+    }
+
+    function startCardBgm() {
+      if (!bgmOn) return;
+
+      cardBgm.volume = 0.35;
+      cardBgm.play().catch(() => {});
+    }
+
+    function stopCardBgm() {
+      cardBgm.pause();
+      cardBgm.currentTime = 0;
     }
 
     function playTone(type) {
@@ -788,10 +1061,51 @@
     function updateScore() {
       scoreNow.textContent = score;
       fairyNow.textContent = fairyName || "준비 중";
+
+      scoreNow.classList.remove("score-pop");
+      void scoreNow.offsetWidth;
+      scoreNow.classList.add("score-pop");
+    }
+
+    function setHaeryeonImage(imagePath) {
+      const img = document.getElementById("haeryeonImage");
+      const frame = document.getElementById("characterFrame");
+
+      if (!img || !frame) return;
+
+      img.src = imagePath;
+      frame.classList.remove("expression-change");
+      void frame.offsetWidth;
+      frame.classList.add("expression-change");
+    }
+
+    function setStartHaeryeon() {
+      setHaeryeonImage(HAERYEON_IMAGES.sad);
+    }
+
+    function updateHaeryeonExpressionByScore(scoreValue) {
+      if (scoreValue >= 42) {
+        setHaeryeonImage(HAERYEON_IMAGES.happy);
+      } else if (scoreValue >= 28) {
+        setHaeryeonImage(HAERYEON_IMAGES.neutral);
+      } else {
+        setHaeryeonImage(HAERYEON_IMAGES.sad);
+      }
+    }
+
+    function getHaeryeonMessage(scoreValue) {
+      if (scoreValue >= 42) {
+        return "와, 정말 고마워! 내 선택을 정말 잘 도와줬어!";
+      } else if (scoreValue >= 28) {
+        return "고마워! 많이 배웠어. 다음엔 더 합리적으로 선택할 수 있을 것 같아.";
+      } else {
+        return "괜찮아! 다음엔 기회비용과 순편익을 더 잘 따져보자.";
+      }
     }
 
     function progressHTML(active) {
       const steps = ["시작", "스토리", "도전", "선택 활동", "정리"];
+
       return `
         <div class="progress">
           ${steps
@@ -832,8 +1146,12 @@
     }
 
     function startScreen() {
+      currentPhase = "start";
+      stopCardBgm();
+      setStartHaeryeon();
       updateScore();
-      screen.innerHTML = `
+
+      renderScreen(`
         ${progressHTML(0)}
         <h2>프로젝트 안내</h2>
         <div class="story-box">
@@ -856,7 +1174,7 @@
         <p class="small">
           입력한 닉네임은 게임 안에서 자동으로 ‘○○ 요정’으로 표시됩니다.
         </p>
-      `;
+      `);
     }
 
     function saveNickname() {
@@ -874,7 +1192,8 @@
       score = 0;
 
       conceptIndex = 0;
-      conceptAnswered = new Array(conceptCards.length).fill(false);
+      conceptRound = shuffleArray(allConceptCards).slice(0, 7);
+      conceptAnswered = new Array(conceptRound.length).fill(false);
       currentMission = 0;
 
       missionCalcDone = [false, false];
@@ -884,12 +1203,16 @@
 
       reviewAnswered = [false, false, false];
 
+      setStartHaeryeon();
       updateScore();
       storyOne();
     }
 
     function storyOne() {
-      screen.innerHTML = `
+      currentPhase = "story";
+      stopCardBgm();
+
+      renderScreen(`
         ${progressHTML(1)}
         <h2>해련이의 고민</h2>
         <div class="speech">
@@ -901,13 +1224,15 @@
         <div class="button-row">
           <button onclick="storyTwo()">다음</button>
         </div>
-      `;
+      `);
     }
 
     function storyTwo() {
+      currentPhase = "story";
+      stopCardBgm();
       playTone("click");
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(1)}
         <h2>선택 요정 미션</h2>
         <div class="speech">
@@ -922,15 +1247,17 @@
         <div class="button-row">
           <button onclick="showConceptGame()">도전과제 시작하기</button>
         </div>
-      `;
+      `);
     }
 
     function showConceptGame() {
+      currentPhase = "concept";
       playTone("click");
+      startCardBgm();
 
-      const card = conceptCards[conceptIndex];
+      const card = conceptRound[conceptIndex];
 
-      let buttons = conceptTerms
+      const buttons = conceptTerms
         .map(
           (term, index) => `
             <button class="choice-btn" id="concept-${index}" onclick="answerConcept('${term.replaceAll("'", "\\'")}')">
@@ -940,13 +1267,13 @@
         )
         .join("");
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(2)}
-        <div class="challenge-label">도전과제 1 | 경제 개념 카드 분류</div>
-        <h2>개념 카드를 알맞은 용어와 연결해 보자</h2>
+        <div class="challenge-label">도전과제 1 | 상황 속 경제 개념 찾기</div>
+        <h2>다양한 생활 상황을 경제 개념에 연결해 보자</h2>
 
         <div class="mini-status">
-          <span>${conceptIndex + 1} / ${conceptCards.length}번째 카드</span>
+          <span>${conceptIndex + 1} / ${conceptRound.length}번째 카드</span>
           <span>카드 정답: +1 POINT</span>
         </div>
 
@@ -959,17 +1286,19 @@
         </div>
 
         <div id="conceptFeedback"></div>
-      `;
+      `);
     }
 
     function answerConcept(selectedTerm) {
-      const card = conceptCards[conceptIndex];
+      const card = conceptRound[conceptIndex];
       const correct = selectedTerm === card.term;
 
       conceptTerms.forEach((term, index) => {
         const btn = document.getElementById(`concept-${index}`);
         if (!btn) return;
+
         btn.disabled = true;
+
         if (term === card.term) btn.classList.add("selected-good");
         if (term === selectedTerm && !correct) btn.classList.add("selected-bad");
       });
@@ -985,7 +1314,7 @@
       playTone(correct ? "correct" : "wrong");
 
       const nextButton =
-        conceptIndex < conceptCards.length - 1
+        conceptIndex < conceptRound.length - 1
           ? `<button onclick="nextConceptCard()">다음 카드</button>`
           : `<button onclick="tutorialOne()">튜토리얼로 이동</button>`;
 
@@ -1004,9 +1333,11 @@
     }
 
     function tutorialOne() {
+      currentPhase = "tutorial";
+      stopCardBgm();
       playTone("click");
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(2)}
         <div class="challenge-label">도전과제 2 | 합리적 선택 3 STEP 튜토리얼</div>
         <h2>STEP 1 | 선택지 자체의 가치 구하기</h2>
@@ -1041,13 +1372,15 @@
         <div class="button-row">
           <button onclick="tutorialTwo()">다음</button>
         </div>
-      `;
+      `);
     }
 
     function tutorialTwo() {
+      currentPhase = "tutorial";
+      stopCardBgm();
       playTone("click");
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(2)}
         <div class="challenge-label">도전과제 2 | 합리적 선택 3 STEP 튜토리얼</div>
         <h2>STEP 2 | 암묵적 비용 찾기</h2>
@@ -1076,13 +1409,15 @@
         <div class="button-row">
           <button onclick="tutorialThree()">다음</button>
         </div>
-      `;
+      `);
     }
 
     function tutorialThree() {
+      currentPhase = "tutorial";
+      stopCardBgm();
       playTone("click");
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(2)}
         <div class="challenge-label">도전과제 2 | 합리적 선택 3 STEP 튜토리얼</div>
         <h2>STEP 3 | 기회비용과 순편익 계산하기</h2>
@@ -1125,10 +1460,12 @@
         <div class="button-row">
           <button onclick="showMission()">해련이 선택 돕기</button>
         </div>
-      `;
+      `);
     }
 
     function showMission() {
+      currentPhase = "mission";
+      stopCardBgm();
       playTone("click");
 
       const data = missions[currentMission];
@@ -1156,7 +1493,7 @@
         `;
       });
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(3)}
         <div class="challenge-label">${data.title}</div>
         <h2>${data.title.replace("도전과제 3 | ", "").replace("도전과제 4 | ", "")}</h2>
@@ -1208,7 +1545,7 @@
         </div>
 
         <div id="choiceFeedback"></div>
-      `;
+      `);
     }
 
     function useHint() {
@@ -1404,6 +1741,8 @@
     }
 
     function showReviewQuestion(qIndex) {
+      currentPhase = "review";
+      stopCardBgm();
       playTone("click");
 
       const q = reviewQuestions[qIndex];
@@ -1417,7 +1756,7 @@
         `;
       });
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(4)}
         <div class="challenge-label">도전과제 5 | 질문으로 확장하기</div>
         <h2>활동 정리</h2>
@@ -1430,7 +1769,7 @@
         </div>
 
         <div id="reviewFeedback"></div>
-      `;
+      `);
     }
 
     function answerReview(qIndex, choiceIndex) {
@@ -1493,12 +1832,16 @@
     }
 
     function showFinal() {
+      currentPhase = "final";
+      stopCardBgm();
       playTone("click");
+
+      updateHaeryeonExpressionByScore(score);
 
       const badge = getBadge(score);
       saveRanking();
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(4)}
         <h2>최종 점수 확인</h2>
         <p>
@@ -1514,10 +1857,13 @@
         </div>
 
         <div id="badgeBox" class="badge">
+          <span class="sparkles">✨</span>
           ${badge.icon} ${badge.name}
+          <span class="sparkles">✨</span>
         </div>
 
         <div id="finalMessage" class="story-box" style="display:none;">
+          <p><strong>${getHaeryeonMessage(score)}</strong></p>
           <p>${badge.message}</p>
           <p>
             합리적 선택은 여러 대안의 편익과 기회비용을 비교하여 순편익이 가장 큰 대안을 선택하는 과정입니다.
@@ -1527,11 +1873,13 @@
 
         <div class="button-row" id="finalButtons" style="display:none;">
           <button onclick="showRanking()">리더보드 보기</button>
-          <button class="ghost-btn" onclick="startScreen()">처음으로 돌아가기</button>
+          <button class="ghost-btn" onclick="restartGame()">처음으로 돌아가기</button>
         </div>
-      `;
+      `);
 
-      animateScore(score);
+      setTimeout(() => {
+        animateScore(score);
+      }, 260);
     }
 
     function animateScore(finalScore) {
@@ -1584,6 +1932,8 @@
     }
 
     function showRanking() {
+      currentPhase = "ranking";
+      stopCardBgm();
       playTone("click");
 
       const list = JSON.parse(localStorage.getItem("choiceFairyRanking") || "[]");
@@ -1601,7 +1951,7 @@
         )
         .join("");
 
-      screen.innerHTML = `
+      renderScreen(`
         ${progressHTML(4)}
         <h2>리더보드</h2>
         <p class="small">
@@ -1619,10 +1969,10 @@
         </table>
 
         <div class="button-row">
-          <button onclick="startScreen()">처음으로 돌아가기</button>
+          <button onclick="restartGame()">처음으로 돌아가기</button>
           <button class="ghost-btn" onclick="clearRanking()">리더보드 초기화</button>
         </div>
-      `;
+      `);
     }
 
     function clearRanking() {
@@ -1630,6 +1980,15 @@
         localStorage.removeItem("choiceFairyRanking");
         showRanking();
       }
+    }
+
+    function restartGame() {
+      nickname = "";
+      fairyName = "";
+      score = 0;
+      setStartHaeryeon();
+      updateScore();
+      startScreen();
     }
 
     startScreen();
