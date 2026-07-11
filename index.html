@@ -113,6 +113,17 @@
       font-weight: 800;
     }
 
+    .player-tag {
+      margin-top: 10px;
+      border: 2px solid var(--line);
+      background: white;
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
     .score-mini {
       margin-top: 12px;
       border: 2px solid var(--line);
@@ -351,6 +362,39 @@
       background: var(--soft);
     }
 
+    .challenge-label {
+      display: inline-block;
+      border: 2px solid var(--line);
+      background: var(--soft);
+      padding: 6px 10px;
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 12px;
+    }
+
+    .card-question {
+      border: 3px solid var(--line);
+      background: white;
+      padding: 22px;
+      margin: 18px 0;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.6;
+    }
+
+    .mini-status {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      border: 2px solid var(--line);
+      background: white;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
     .gauge-wrap {
       margin: 28px 0 16px;
       border: 3px solid var(--line);
@@ -461,6 +505,11 @@
 
         <div class="name-tag">해련</div>
 
+        <div class="player-tag">
+          현재 요정<br />
+          <span id="fairyNow">준비 중</span>
+        </div>
+
         <div class="score-mini">
           POINT
           <strong id="scoreNow">0</strong>
@@ -476,23 +525,70 @@
   </div>
 
   <script>
-    const MAX_SCORE = 40;
+    const MAX_SCORE = 50;
 
     let nickname = "";
+    let fairyName = "";
     let score = 0;
+
+    let conceptIndex = 0;
+    let conceptAnswered = [];
     let currentMission = 0;
 
-    let missionCalcDone = [false, false];       // 계산 점수를 받았는지
-    let missionCalcChecked = [false, false];    // 계산 확인을 한 번이라도 했는지
-    let missionChoiceDone = [false, false];     // 선택 점수 기회를 사용했는지
-    let reviewAnswered = [false, false, false]; // 정리 질문 점수 기회를 사용했는지
+    let missionCalcDone = [false, false];
+    let missionCalcChecked = [false, false];
+    let missionChoiceDone = [false, false];
+    let missionHintCount = [0, 0];
+
+    let reviewAnswered = [false, false, false];
 
     let soundOn = true;
     let audioCtx = null;
 
+    const conceptCards = [
+      {
+        term: "합리적 선택",
+        clue: "여러 대안의 편익과 비용을 비교해 순편익이 가장 큰 대안을 고르는 것"
+      },
+      {
+        term: "편익",
+        clue: "어떤 선택을 통해 얻게 되는 만족이나 이익"
+      },
+      {
+        term: "명시적 비용",
+        clue: "선택을 위해 실제로 지불하는 비용"
+      },
+      {
+        term: "암묵적 비용",
+        clue: "선택하지 않은 대안 중 가장 가치 있는 대안의 가치"
+      },
+      {
+        term: "기회비용",
+        clue: "명시적 비용과 암묵적 비용을 더한 값"
+      },
+      {
+        term: "매몰 비용",
+        clue: "이미 지출하여 다시 회수할 수 없는 비용"
+      },
+      {
+        term: "순편익",
+        clue: "편익에서 기회비용을 뺀 값"
+      }
+    ];
+
+    const conceptTerms = [
+      "합리적 선택",
+      "편익",
+      "명시적 비용",
+      "암묵적 비용",
+      "기회비용",
+      "매몰 비용",
+      "순편익"
+    ];
+
     const missions = [
       {
-        title: "선택 상황 1 | 소중한 내 아침 식사는?",
+        title: "도전과제 3 | 소중한 내 아침 식사는?",
         story:
           "해련이는 아침을 먹지 못하고 등교해, 편의점에서 간단한 아침 식사를 하려고 한다. 세 가지 선택지 중 가장 합리적인 선택을 찾아 해련이에게 제안해 보자.",
         best: "삼각김밥",
@@ -533,7 +629,7 @@
         ]
       },
       {
-        title: "선택 상황 2 | 영화관을 나갈까, 말까?",
+        title: "도전과제 4 | 영화관을 나갈까, 말까?",
         story:
           "해련이는 친구와 영화를 보러 갔는데, 영화가 30분쯤 지나자 너무 재미없다. 이미 낸 영화표 8,000원의 환불은 불가능하다. 매몰 비용의 의미를 떠올려 두 가지 선택지를 비교해 보자.",
         notice:
@@ -569,7 +665,7 @@
     const reviewQuestions = [
       {
         question: "가장 싼 선택이 항상 합리적인 선택일까?",
-        points: 4,
+        points: 5,
         choices: [
           {
             text: "그렇다. 돈을 가장 적게 쓰는 선택이므로 항상 합리적이다.",
@@ -583,7 +679,7 @@
       },
       {
         question: "이미 쓴 돈이 아깝다는 이유로 계속 선택을 유지하는 것은 합리적일까?",
-        points: 3,
+        points: 4,
         choices: [
           {
             text: "아니다. 이미 회수할 수 없는 매몰 비용에 얽매이지 않고 현재의 편익과 기회비용을 비교해야 한다.",
@@ -597,7 +693,7 @@
       },
       {
         question: "해련이의 상황이 바뀐다면 합리적 선택도 달라질 수 있을까?",
-        points: 3,
+        points: 4,
         choices: [
           {
             text: "그렇다. 가진 용돈, 시간, 새로운 선택지 등 조건이 달라지면 순편익도 달라질 수 있다.",
@@ -613,6 +709,11 @@
 
     const screen = document.getElementById("screen");
     const scoreNow = document.getElementById("scoreNow");
+    const fairyNow = document.getElementById("fairyNow");
+
+    function makeFairyName(name) {
+      return name.endsWith("요정") ? name : name + " 요정";
+    }
 
     function toggleSound() {
       soundOn = !soundOn;
@@ -686,10 +787,11 @@
 
     function updateScore() {
       scoreNow.textContent = score;
+      fairyNow.textContent = fairyName || "준비 중";
     }
 
     function progressHTML(active) {
-      const steps = ["시작", "스토리", "튜토리얼", "선택 활동", "정리"];
+      const steps = ["시작", "스토리", "도전", "선택 활동", "정리"];
       return `
         <div class="progress">
           ${steps
@@ -698,93 +800,6 @@
                 `<div class="${index === active ? "on" : ""}">${step}</div>`
             )
             .join("")}
-        </div>
-      `;
-    }
-
-    function startScreen() {
-      updateScore();
-      screen.innerHTML = `
-        ${progressHTML(0)}
-        <h2>프로젝트 안내</h2>
-        <div class="story-box">
-          <p>
-            이 웹 활동은 창의문제해결 프로젝트의 일환으로 제작한
-            고등학교 경제 과목 「경제생활과 합리적 선택」 모의 선택 활동 게임입니다.
-          </p>
-          <p>
-            학생은 해련이의 선택 요정이 되어 각 선택의 편익, 명시적 비용, 암묵적 비용,
-            기회비용, 순편익을 비교하고 가장 합리적인 선택을 제안합니다.
-          </p>
-        </div>
-
-        <h3>닉네임 입력</h3>
-        <div class="input-row">
-          <input id="nicknameInput" placeholder="닉네임을 입력하세요" maxlength="12" />
-          <button onclick="saveNickname()">시작하기</button>
-        </div>
-
-        <p class="small">
-          닉네임은 최종 점수와 일회성 랭킹 표시에 사용됩니다.
-        </p>
-      `;
-    }
-
-    function saveNickname() {
-      const input = document.getElementById("nicknameInput").value.trim();
-
-      if (!input) {
-        alert("닉네임을 입력한 뒤 시작해 주세요.");
-        return;
-      }
-
-      playTone("click");
-
-      nickname = input;
-      score = 0;
-      currentMission = 0;
-      missionCalcDone = [false, false];
-      missionCalcChecked = [false, false];
-      missionChoiceDone = [false, false];
-      reviewAnswered = [false, false, false];
-
-      updateScore();
-      storyOne();
-    }
-
-    function storyOne() {
-      screen.innerHTML = `
-        ${progressHTML(1)}
-        <h2>해련이의 고민</h2>
-        <div class="speech">
-          “나는 평소 계획 없이 소비하거나 충동적으로 물건을 사서 용돈 관리가 어려워.”
-        </div>
-        <div class="speech">
-          “오늘도 여러 선택을 해야 하는데, 어떤 선택이 더 합리적인지 잘 모르겠어.”
-        </div>
-        <div class="button-row">
-          <button onclick="storyTwo()">다음</button>
-        </div>
-      `;
-    }
-
-    function storyTwo() {
-      playTone("click");
-
-      screen.innerHTML = `
-        ${progressHTML(1)}
-        <h2>선택 요정 미션</h2>
-        <div class="speech">
-          “${nickname} 선택 요정! 내 선택의 편익과 기회비용을 따져 가장 합리적인 선택을 도와줘.”
-        </div>
-
-        <details>
-          <summary>경제 개념 도움말 열기 / 닫기</summary>
-          ${conceptHelpHTML()}
-        </details>
-
-        <div class="button-row">
-          <button onclick="tutorialOne()">튜토리얼 시작하기</button>
         </div>
       `;
     }
@@ -816,12 +831,185 @@
       `;
     }
 
+    function startScreen() {
+      updateScore();
+      screen.innerHTML = `
+        ${progressHTML(0)}
+        <h2>프로젝트 안내</h2>
+        <div class="story-box">
+          <p>
+            이 웹 활동은 창의문제해결 프로젝트의 일환으로 제작한
+            고등학교 경제 과목 「경제생활과 합리적 선택」 모의 선택 활동 게임입니다.
+          </p>
+          <p>
+            학생은 해련이의 선택 요정이 되어 편익, 명시적 비용, 암묵적 비용,
+            기회비용, 순편익을 비교하고 가장 합리적인 선택을 제안합니다.
+          </p>
+        </div>
+
+        <h3>닉네임 입력</h3>
+        <div class="input-row">
+          <input id="nicknameInput" placeholder="닉네임을 입력하세요" maxlength="12" />
+          <button onclick="saveNickname()">시작하기</button>
+        </div>
+
+        <p class="small">
+          입력한 닉네임은 게임 안에서 자동으로 ‘○○ 요정’으로 표시됩니다.
+        </p>
+      `;
+    }
+
+    function saveNickname() {
+      const input = document.getElementById("nicknameInput").value.trim();
+
+      if (!input) {
+        alert("닉네임을 입력한 뒤 시작해 주세요.");
+        return;
+      }
+
+      playTone("click");
+
+      nickname = input;
+      fairyName = makeFairyName(input);
+      score = 0;
+
+      conceptIndex = 0;
+      conceptAnswered = new Array(conceptCards.length).fill(false);
+      currentMission = 0;
+
+      missionCalcDone = [false, false];
+      missionCalcChecked = [false, false];
+      missionChoiceDone = [false, false];
+      missionHintCount = [0, 0];
+
+      reviewAnswered = [false, false, false];
+
+      updateScore();
+      storyOne();
+    }
+
+    function storyOne() {
+      screen.innerHTML = `
+        ${progressHTML(1)}
+        <h2>해련이의 고민</h2>
+        <div class="speech">
+          “나는 평소 계획 없이 소비하거나 충동적으로 물건을 사서 용돈 관리가 어려워.”
+        </div>
+        <div class="speech">
+          “오늘도 여러 선택을 해야 하는데, 어떤 선택이 더 합리적인지 잘 모르겠어.”
+        </div>
+        <div class="button-row">
+          <button onclick="storyTwo()">다음</button>
+        </div>
+      `;
+    }
+
+    function storyTwo() {
+      playTone("click");
+
+      screen.innerHTML = `
+        ${progressHTML(1)}
+        <h2>선택 요정 미션</h2>
+        <div class="speech">
+          “${fairyName}! 내 선택의 편익과 기회비용을 따져 가장 합리적인 선택을 도와줘.”
+        </div>
+
+        <details>
+          <summary>경제 개념 도움말 열기 / 닫기</summary>
+          ${conceptHelpHTML()}
+        </details>
+
+        <div class="button-row">
+          <button onclick="showConceptGame()">도전과제 시작하기</button>
+        </div>
+      `;
+    }
+
+    function showConceptGame() {
+      playTone("click");
+
+      const card = conceptCards[conceptIndex];
+
+      let buttons = conceptTerms
+        .map(
+          (term, index) => `
+            <button class="choice-btn" id="concept-${index}" onclick="answerConcept('${term.replaceAll("'", "\\'")}')">
+              ${term}
+            </button>
+          `
+        )
+        .join("");
+
+      screen.innerHTML = `
+        ${progressHTML(2)}
+        <div class="challenge-label">도전과제 1 | 경제 개념 카드 분류</div>
+        <h2>개념 카드를 알맞은 용어와 연결해 보자</h2>
+
+        <div class="mini-status">
+          <span>${conceptIndex + 1} / ${conceptCards.length}번째 카드</span>
+          <span>카드 정답: +1 POINT</span>
+        </div>
+
+        <div class="card-question">
+          ${card.clue}
+        </div>
+
+        <div class="choice-list">
+          ${buttons}
+        </div>
+
+        <div id="conceptFeedback"></div>
+      `;
+    }
+
+    function answerConcept(selectedTerm) {
+      const card = conceptCards[conceptIndex];
+      const correct = selectedTerm === card.term;
+
+      conceptTerms.forEach((term, index) => {
+        const btn = document.getElementById(`concept-${index}`);
+        if (!btn) return;
+        btn.disabled = true;
+        if (term === card.term) btn.classList.add("selected-good");
+        if (term === selectedTerm && !correct) btn.classList.add("selected-bad");
+      });
+
+      if (correct && !conceptAnswered[conceptIndex]) {
+        score += 1;
+        conceptAnswered[conceptIndex] = true;
+        updateScore();
+      } else {
+        conceptAnswered[conceptIndex] = true;
+      }
+
+      playTone(correct ? "correct" : "wrong");
+
+      const nextButton =
+        conceptIndex < conceptCards.length - 1
+          ? `<button onclick="nextConceptCard()">다음 카드</button>`
+          : `<button onclick="tutorialOne()">튜토리얼로 이동</button>`;
+
+      document.getElementById("conceptFeedback").innerHTML = `
+        <div class="feedback ${correct ? "good" : "bad"}">
+          <p><strong>${correct ? "정답입니다. +1 POINT" : "오답입니다."}</strong></p>
+          <p>정답은 <strong>${card.term}</strong>입니다.</p>
+          <div class="button-row">${nextButton}</div>
+        </div>
+      `;
+    }
+
+    function nextConceptCard() {
+      conceptIndex += 1;
+      showConceptGame();
+    }
+
     function tutorialOne() {
       playTone("click");
 
       screen.innerHTML = `
         ${progressHTML(2)}
-        <h2>튜토리얼 1 | 선택지 자체의 가치 구하기</h2>
+        <div class="challenge-label">도전과제 2 | 합리적 선택 3 STEP 튜토리얼</div>
+        <h2>STEP 1 | 선택지 자체의 가치 구하기</h2>
         <p>
           선택지 자체의 가치는 편익에서 명시적 비용을 뺀 값입니다.
         </p>
@@ -861,7 +1049,8 @@
 
       screen.innerHTML = `
         ${progressHTML(2)}
-        <h2>튜토리얼 2 | 암묵적 비용 찾기</h2>
+        <div class="challenge-label">도전과제 2 | 합리적 선택 3 STEP 튜토리얼</div>
+        <h2>STEP 2 | 암묵적 비용 찾기</h2>
         <p>
           암묵적 비용은 내가 선택하지 않은 대안 중 가장 가치 있는 대안의 가치입니다.
         </p>
@@ -895,7 +1084,8 @@
 
       screen.innerHTML = `
         ${progressHTML(2)}
-        <h2>튜토리얼 3 | 기회비용과 순편익 계산하기</h2>
+        <div class="challenge-label">도전과제 2 | 합리적 선택 3 STEP 튜토리얼</div>
+        <h2>STEP 3 | 기회비용과 순편익 계산하기</h2>
         <div class="info-box">
           기회비용 = 명시적 비용 + 암묵적 비용<br />
           순편익 = 편익 - 기회비용
@@ -933,7 +1123,7 @@
         </div>
 
         <div class="button-row">
-          <button onclick="showMission()">모의 선택 활동 시작하기</button>
+          <button onclick="showMission()">해련이 선택 돕기</button>
         </div>
       `;
     }
@@ -968,7 +1158,8 @@
 
       screen.innerHTML = `
         ${progressHTML(3)}
-        <h2>${data.title}</h2>
+        <div class="challenge-label">${data.title}</div>
+        <h2>${data.title.replace("도전과제 3 | ", "").replace("도전과제 4 | ", "")}</h2>
         <div class="story-box">
           <p>${data.story}</p>
           ${data.notice ? `<p class="notice">${data.notice}</p>` : ""}
@@ -981,8 +1172,13 @@
 
         <h3>1단계 | 계산 미션</h3>
         <p>
-          편익과 명시적 비용을 바탕으로 암묵적 비용, 기회비용, 순편익을 계산해 보세요.
+          ${fairyName}, 편익과 명시적 비용을 바탕으로 암묵적 비용, 기회비용, 순편익을 계산해 보세요.
         </p>
+
+        <div class="mini-status">
+          <span>힌트 사용 횟수: <span id="hintCountView">${missionHintCount[currentMission]}</span>회</span>
+          <span>힌트 없이 정답: +5 / 힌트 1회: +3 / 힌트 2회: +1</span>
+        </div>
 
         <table>
           <tr>
@@ -998,7 +1194,7 @@
 
         <div class="button-row">
           <button onclick="checkMissionCalculation()">계산 확인하기</button>
-          <button class="ghost-btn" onclick="fillExampleHint()">힌트 보기</button>
+          <button class="ghost-btn" onclick="useHint()">힌트로 일부 칸 채우기</button>
         </div>
 
         <div id="calcFeedback"></div>
@@ -1015,14 +1211,66 @@
       `;
     }
 
-    function fillExampleHint() {
-      playTone("click");
+    function useHint() {
+      const data = missions[currentMission];
+      const count = missionHintCount[currentMission];
 
-      document.getElementById("calcFeedback").innerHTML = `
-        <div class="feedback">
-          먼저 선택지 자체의 가치를 비교해 보세요. 그리고 내가 어떤 선택을 했을 때 포기하게 되는 대안 중 가장 가치 있는 것을 암묵적 비용으로 보면 됩니다.
-        </div>
-      `;
+      if (missionCalcChecked[currentMission]) {
+        document.getElementById("calcFeedback").innerHTML = `
+          <div class="feedback">
+            이미 계산 확인을 했기 때문에 힌트를 추가로 사용할 수 없습니다.
+          </div>
+        `;
+        playTone("wrong");
+        return;
+      }
+
+      if (count >= 2) {
+        document.getElementById("calcFeedback").innerHTML = `
+          <div class="feedback">
+            이 미션에서 사용할 수 있는 힌트를 모두 사용했습니다. 남은 칸을 직접 계산해 보세요.
+          </div>
+        `;
+        playTone("wrong");
+        return;
+      }
+
+      if (count === 0) {
+        data.options.forEach((option, index) => {
+          document.getElementById(`implicit-${index}`).value = option.implicit;
+        });
+
+        missionHintCount[currentMission] += 1;
+        document.getElementById("hintCountView").textContent = missionHintCount[currentMission];
+
+        document.getElementById("calcFeedback").innerHTML = `
+          <div class="feedback">
+            힌트 1 사용: 암묵적 비용 칸을 채웠습니다. 이제 기회비용과 순편익을 계산해 보세요.
+          </div>
+        `;
+      } else if (count === 1) {
+        data.options.forEach((option, index) => {
+          document.getElementById(`opportunity-${index}`).value = option.opportunity;
+        });
+
+        missionHintCount[currentMission] += 1;
+        document.getElementById("hintCountView").textContent = missionHintCount[currentMission];
+
+        document.getElementById("calcFeedback").innerHTML = `
+          <div class="feedback">
+            힌트 2 사용: 기회비용 칸을 채웠습니다. 이제 순편익은 직접 계산해 보세요.
+          </div>
+        `;
+      }
+
+      playTone("click");
+    }
+
+    function getCalculationPointByHint(hintCount) {
+      if (hintCount === 0) return 5;
+      if (hintCount === 1) return 3;
+      if (hintCount === 2) return 1;
+      return 0;
     }
 
     function checkMissionCalculation() {
@@ -1059,8 +1307,11 @@
 
       missionCalcChecked[currentMission] = true;
 
+      let gainedPoint = 0;
+
       if (firstCheck && allCorrect && !missionCalcDone[currentMission]) {
-        score += 5;
+        gainedPoint = getCalculationPointByHint(missionHintCount[currentMission]);
+        score += gainedPoint;
         missionCalcDone[currentMission] = true;
         updateScore();
       }
@@ -1070,7 +1321,7 @@
       let feedbackTitle = "";
 
       if (firstCheck && allCorrect) {
-        feedbackTitle = "계산이 정확합니다. +5 POINT";
+        feedbackTitle = `계산이 정확합니다. +${gainedPoint} POINT`;
       } else if (firstCheck && !allCorrect) {
         feedbackTitle = "오답입니다. 정답을 확인한 뒤 선택 단계로 넘어갈 수 있습니다. 계산 포인트는 획득하지 못했습니다.";
       } else if (!firstCheck && allCorrect) {
@@ -1134,14 +1385,14 @@
 
       const nextButton =
         currentMission < missions.length - 1
-          ? `<button onclick="nextMission()">다음 선택 상황으로 이동</button>`
+          ? `<button onclick="nextMission()">다음 도전과제로 이동</button>`
           : `<button onclick="showReviewQuestion(0)">정리 질문으로 이동</button>`;
 
       document.getElementById("choiceFeedback").innerHTML = `
         <div class="feedback ${option.rational ? "good" : "bad"}">
           <p><strong>${option.rational ? "+10 POINT 획득" : "포인트를 얻지 못했습니다."}</strong></p>
           <p>${option.feedback}</p>
-          <p>이 상황에서 순편익이 가장 큰 선택은 <strong>${data.best}</strong>입니다.</p>
+          <p>${fairyName}이/가 해련이에게 제안할 수 있는 가장 합리적인 선택은 <strong>${data.best}</strong>입니다.</p>
           <div class="button-row">${nextButton}</div>
         </div>
       `;
@@ -1168,7 +1419,8 @@
 
       screen.innerHTML = `
         ${progressHTML(4)}
-        <h2>활동 정리 | 질문으로 확장하기</h2>
+        <div class="challenge-label">도전과제 5 | 질문으로 확장하기</div>
+        <h2>활동 정리</h2>
         <div class="story-box">
           <p><strong>질문 ${qIndex + 1}.</strong> ${q.question}</p>
         </div>
@@ -1217,26 +1469,26 @@
     }
 
     function getBadge(scoreValue) {
-      if (scoreValue >= 35) {
+      if (scoreValue >= 42) {
         return {
           name: "합리적 선택 요정",
           icon: "🏆",
-          message: "편익, 기회비용, 매몰 비용을 종합해 합리적 선택을 잘 판단했습니다."
+          message: "편익, 기회비용, 매몰 비용을 종합해 해련이의 선택을 매우 잘 도왔습니다."
         };
       }
 
-      if (scoreValue >= 24) {
+      if (scoreValue >= 28) {
         return {
           name: "성장 중인 선택 요정",
           icon: "🌱",
-          message: "합리적 선택의 방향을 이해했습니다. 암묵적 비용과 순편익 계산을 한 번 더 복습하면 좋습니다."
+          message: "합리적 선택의 방향을 이해했습니다. 암묵적 비용과 순편익 계산을 조금 더 연습하면 좋습니다."
         };
       }
 
       return {
-        name: "기회비용 다시 보기",
-        icon: "🔍",
-        message: "명시적 비용만 보지 말고, 포기한 대안의 가치와 매몰 비용을 함께 점검해 봅시다."
+        name: "아기 선택 요정",
+        icon: "🍼",
+        message: "선택 요정으로 첫걸음을 시작했습니다. 명시적 비용뿐 아니라 포기한 대안의 가치도 함께 살펴보면 좋습니다."
       };
     }
 
@@ -1250,7 +1502,7 @@
         ${progressHTML(4)}
         <h2>최종 점수 확인</h2>
         <p>
-          ${nickname}님의 선택 활동 결과를 확인합니다.
+          ${fairyName}님의 선택 활동 결과를 확인합니다.
         </p>
 
         <div class="score-big">
@@ -1274,7 +1526,7 @@
         </div>
 
         <div class="button-row" id="finalButtons" style="display:none;">
-          <button onclick="showRanking()">랭킹 보기</button>
+          <button onclick="showRanking()">리더보드 보기</button>
           <button class="ghost-btn" onclick="startScreen()">처음으로 돌아가기</button>
         </div>
       `;
@@ -1307,7 +1559,7 @@
 
         current += 1;
         scoreText.textContent = current;
-      }, 35);
+      }, 30);
 
       setTimeout(() => {
         const percent = Math.min(100, (finalScore / MAX_SCORE) * 100);
@@ -1319,7 +1571,7 @@
       const badge = getBadge(score);
 
       const record = {
-        nickname,
+        nickname: fairyName,
         score,
         badge: badge.name,
         date: new Date().toLocaleString("ko-KR")
@@ -1351,15 +1603,15 @@
 
       screen.innerHTML = `
         ${progressHTML(4)}
-        <h2>랭킹 보기</h2>
+        <h2>리더보드</h2>
         <p class="small">
-          이 랭킹은 현재 기기와 브라우저에 저장된 일회성 기록입니다.
+          이 리더보드는 현재 기기와 브라우저에 저장된 일회성 기록입니다.
         </p>
 
         <table class="ranking-table">
           <tr>
             <th>순위</th>
-            <th>닉네임</th>
+            <th>요정 이름</th>
             <th>점수</th>
             <th>배지</th>
           </tr>
@@ -1368,13 +1620,13 @@
 
         <div class="button-row">
           <button onclick="startScreen()">처음으로 돌아가기</button>
-          <button class="ghost-btn" onclick="clearRanking()">랭킹 초기화</button>
+          <button class="ghost-btn" onclick="clearRanking()">리더보드 초기화</button>
         </div>
       `;
     }
 
     function clearRanking() {
-      if (confirm("현재 기기의 랭킹 기록을 지울까요?")) {
+      if (confirm("현재 기기의 리더보드 기록을 지울까요?")) {
         localStorage.removeItem("choiceFairyRanking");
         showRanking();
       }
