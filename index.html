@@ -171,16 +171,16 @@
       padding: 20px;
       box-shadow: 5px 5px 0 var(--line);
       min-height: 560px;
-      transition: opacity 0.18s ease, transform 0.18s ease;
+      transition: opacity 0.28s ease, transform 0.28s ease;
     }
 
     .screen-enter {
-      animation: fadeSlideIn 0.38s ease-out;
+      animation: softFadeIn 0.42s ease-out;
     }
 
     .screen-leave {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateY(6px);
     }
 
     h2 {
@@ -203,7 +203,7 @@
       padding: 16px;
       margin: 14px 0;
       line-height: 1.75;
-      animation: bubbleIn 0.45s ease-out;
+      animation: bubbleIn 0.42s ease-out;
     }
 
     .story-box,
@@ -258,8 +258,8 @@
     }
 
     button:active {
-      transform: translate(3px, 3px);
-      box-shadow: 0 0 0 var(--line);
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--line);
     }
 
     button:disabled {
@@ -345,7 +345,7 @@
       margin: 14px 0;
       line-height: 1.7;
       background: white;
-      animation: feedbackIn 0.28s ease-out;
+      animation: feedbackIn 0.3s ease-out;
     }
 
     .feedback.good {
@@ -370,19 +370,19 @@
       box-shadow: none;
       border: 2px solid var(--line);
       line-height: 1.7;
-      animation: optionIn 0.28s ease-out;
+      animation: optionIn 0.3s ease-out;
     }
 
     .choice-btn.selected-good {
       background: var(--good);
       border-width: 3px;
-      animation: correctPulse 0.45s ease-out;
+      animation: correctPulse 0.38s ease-out;
     }
 
     .choice-btn.selected-bad {
       background: var(--bad);
       border-width: 3px;
-      animation: wrongShake 0.38s ease-out;
+      animation: wrongShake 0.32s ease-out;
     }
 
     .progress {
@@ -404,7 +404,7 @@
 
     .progress .on {
       background: var(--soft);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     .challenge-label {
@@ -415,7 +415,7 @@
       font-size: 14px;
       font-weight: 900;
       margin-bottom: 12px;
-      animation: labelPop 0.32s ease-out;
+      animation: labelPop 0.3s ease-out;
     }
 
     .card-question {
@@ -427,7 +427,7 @@
       font-size: 22px;
       font-weight: 900;
       line-height: 1.6;
-      animation: cardFlipIn 0.45s ease-out;
+      animation: cardSoftIn 0.5s ease-out;
       transform-origin: center;
     }
 
@@ -454,7 +454,7 @@
       height: 32px;
       width: 0%;
       background: var(--bar);
-      transition: width 1.5s ease-out;
+      transition: width 1.6s ease-out;
     }
 
     .score-big {
@@ -473,7 +473,7 @@
       margin: 18px 0;
       font-size: 24px;
       font-weight: 900;
-      animation: badgePop 0.55s ease-out;
+      animation: badgeSoftIn 0.55s ease-out;
     }
 
     .sparkles {
@@ -493,7 +493,7 @@
     @keyframes dropIn {
       from {
         opacity: 0;
-        transform: translateY(-16px);
+        transform: translateY(-10px);
       }
       to {
         opacity: 1;
@@ -504,7 +504,7 @@
     @keyframes sideIn {
       from {
         opacity: 0;
-        transform: translateX(-18px);
+        transform: translateX(-10px);
       }
       to {
         opacity: 1;
@@ -512,29 +512,7 @@
       }
     }
 
-    @keyframes fadeSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes bubbleIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes feedbackIn {
+    @keyframes softFadeIn {
       from {
         opacity: 0;
         transform: translateY(8px);
@@ -545,25 +523,47 @@
       }
     }
 
-    @keyframes optionIn {
+    @keyframes bubbleIn {
       from {
         opacity: 0;
-        transform: translateX(10px);
+        transform: translateY(6px);
       }
       to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
       }
     }
 
-    @keyframes cardFlipIn {
-      0% {
+    @keyframes feedbackIn {
+      from {
         opacity: 0;
-        transform: rotateX(70deg) scale(0.94);
+        transform: translateY(6px);
       }
-      100% {
+      to {
         opacity: 1;
-        transform: rotateX(0) scale(1);
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes optionIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes cardSoftIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
     }
 
@@ -571,8 +571,8 @@
       0% {
         transform: scale(1);
       }
-      45% {
-        transform: scale(1.025);
+      50% {
+        transform: scale(1.012);
       }
       100% {
         transform: scale(1);
@@ -583,25 +583,22 @@
       0%, 100% {
         transform: translateX(0);
       }
-      25% {
-        transform: translateX(-4px);
-      }
-      50% {
-        transform: translateX(4px);
-      }
-      75% {
+      35% {
         transform: translateX(-2px);
+      }
+      70% {
+        transform: translateX(2px);
       }
     }
 
     @keyframes labelPop {
       from {
         opacity: 0;
-        transform: scale(0.92);
+        transform: translateY(4px);
       }
       to {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0);
       }
     }
 
@@ -610,7 +607,7 @@
         transform: scale(1);
       }
       50% {
-        transform: scale(1.22);
+        transform: scale(1.08);
       }
       100% {
         transform: scale(1);
@@ -619,12 +616,8 @@
 
     @keyframes characterPop {
       0% {
-        opacity: 0.4;
-        transform: scale(0.88);
-      }
-      60% {
-        opacity: 1;
-        transform: scale(1.05);
+        opacity: 0.65;
+        transform: scale(0.97);
       }
       100% {
         opacity: 1;
@@ -632,17 +625,13 @@
       }
     }
 
-    @keyframes badgePop {
+    @keyframes badgeSoftIn {
       0% {
-        transform: scale(0.72) rotate(-2deg);
+        transform: translateY(8px) scale(0.96);
         opacity: 0;
       }
-      65% {
-        transform: scale(1.08) rotate(1deg);
-        opacity: 1;
-      }
       100% {
-        transform: scale(1) rotate(0);
+        transform: translateY(0) scale(1);
         opacity: 1;
       }
     }
@@ -652,7 +641,7 @@
         transform: translateY(0);
       }
       to {
-        transform: translateY(-4px);
+        transform: translateY(-2px);
       }
     }
 
@@ -941,12 +930,15 @@
       setTimeout(() => {
         screen.innerHTML = html;
         screen.classList.remove("screen-leave");
-        screen.classList.add("screen-enter");
 
-        setTimeout(() => {
-          screen.classList.remove("screen-enter");
-        }, 420);
-      }, 120);
+        requestAnimationFrame(() => {
+          screen.classList.add("screen-enter");
+
+          setTimeout(() => {
+            screen.classList.remove("screen-enter");
+          }, 460);
+        });
+      }, 180);
     }
 
     function makeFairyName(name) {
@@ -1879,7 +1871,7 @@
 
       setTimeout(() => {
         animateScore(score);
-      }, 260);
+      }, 360);
     }
 
     function animateScore(finalScore) {
